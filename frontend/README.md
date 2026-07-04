@@ -110,5 +110,26 @@ mkdir src\routes
 New-Item Dockerfile -ItemType File
 New-Item nginx.conf -ItemType File
 
+New-Item -ItemType File `
+src\components\Navbar.jsx, `
+src\components\ProtectedRoute.jsx, `
+src\components\StatsCard.jsx, `
+src\components\BackupProgress.jsx, `
+src\layouts\MainLayout.jsx, `
+src\pages\Login\Login.jsx, `
+src\pages\Register\Register.jsx, `
+src\pages\Dashboard\Dashboard.jsx, `
+src\pages\Backup\Backup.jsx, `
+src\pages\Restore\Restore.jsx, `
+src\pages\History\History.jsx, `
+src\pages\Analytics\Analytics.jsx, `
+src\pages\Settings\Settings.jsx, `
+src\hooks\useAuth.js, `
+src\context\AuthContext.jsx, `
+src\services\api.js, `
+src\utils\helpers.js, `
+src\routes\index.jsx,
 
+npm install axios chart.js react react-dom react-chartjs-2 react-router-dom react-toastify
 
+npm install react-icons jwt-decode
