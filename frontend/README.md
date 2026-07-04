@@ -88,9 +88,27 @@ CSS
 
 @import "tailwindcss";
 
+git merge --quit  
 
+mkdir src\components
+mkdir src\layouts
+mkdir src\pages
+mkdir src\pages\Login
+mkdir src\pages\Register
+mkdir src\pages\Dashboard
+mkdir src\pages\Backup
+mkdir src\pages\Restore
+mkdir src\pages\History
+mkdir src\pages\Analytics
+mkdir src\pages\Settings
+mkdir src\hooks
+mkdir src\context
+mkdir src\services
+mkdir src\utils
+mkdir src\routes
 
-
+New-Item Dockerfile -ItemType File
+New-Item nginx.conf -ItemType File
 
 
 
