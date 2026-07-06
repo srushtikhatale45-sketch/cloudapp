@@ -8,10 +8,17 @@ const Restore = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    api.get('/history')
-      .then(res => setBackups(res.data))
-      .catch(console.error);
-  }, []);
+  api.get('/history')
+    .then(res => {
+      const data = res.data || [];
+      // If data is an array, use it; otherwise look for a 'backups' property
+      const backupsArray = Array.isArray(data)
+        ? data
+        : (data.backups && Array.isArray(data.backups) ? data.backups : []);
+      setBackups(backupsArray);
+    })
+    .catch(console.error);
+}, []);
 
   const handleRestore = async () => {
     if (!selected) return;

@@ -9,10 +9,17 @@ const Settings = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    api.get('/settings')
-      .then(res => setSettings(res.data))
-      .catch(console.error);
-  }, []);
+  api.get('/settings')
+    .then(res => {
+      const data = res.data || {};
+      setSettings({
+        folders: Array.isArray(data.folders) ? data.folders : [],
+        schedule: data.schedule || 'daily',
+        ...data
+      });
+    })
+    .catch(console.error);
+}, []);
 
   const handleSave = async () => {
     try {

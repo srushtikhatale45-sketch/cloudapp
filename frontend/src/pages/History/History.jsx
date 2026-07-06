@@ -6,11 +6,18 @@ const History = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/history')
-      .then(res => setBackups(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  api.get('/history')
+    .then(res => {
+      const data = res.data || [];
+      // If data is an object and has a 'backups' array, use it
+      const backupsArray = data.backups && Array.isArray(data.backups)
+        ? data.backups
+        : (Array.isArray(data) ? data : []);
+      setBackups(backupsArray);
+    })
+    .catch(console.error)
+    .finally(() => setLoading(false));
+}, []);
 
   if (loading) return <div>Loading history...</div>;
 
