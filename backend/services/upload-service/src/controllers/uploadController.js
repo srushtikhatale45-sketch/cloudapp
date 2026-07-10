@@ -1,40 +1,54 @@
-const archiver = require('archiver');
-const crypto = require('crypto');
-const { PassThrough } = require('stream');
-const s3 = require('../config/spaces');
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const s3 = require('../config/spaces');
 
 exports.uploadBackup = async (req, res) => {
-  const { userId, backupId, folders } = req.body;
-
-  // Create a ZIP stream
-  const archive = archiver('zip', { zlib: { level: 9 } });
-  const passThrough = new PassThrough();
-  archive.pipe(passThrough);
-
-  // Add files (dummy for demo – in real you'd read actual files)
-  archive.append('Backup content', { name: 'dummy.txt' });
-  archive.finalize();
-
-  // Encrypt
-  const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  const encryptedStream = passThrough.pipe(cipher);
-
-  const keyName = `user${userId}/${new Date().toISOString().slice(0,10)}/backup_${backupId}.zip.enc`;
-  const uploadParams = {
-    Bucket: process.env.SPACES_BUCKET,
-    Key: keyName,
-    Body: encryptedStream,
-    ACL: 'private',
-  };
-
   try {
+    // Log the incoming data
+    console.log('📥 Request received:');
+    console.log('  - userId:', req.body.userId);
+    console.log('  - backupId:', req.body.backupId);
+    console.log('  - file:', req.file ? req.file.originalname : 'NO FILE');
+
+    const file = req.file;
+    const { userId, backupId } = req.body;
+
+    // Validate inputs
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded. Make sure the field name is "file".' });
+    }
+    if (!userId || !backupId) {
+      return res.status(400).json({ error: 'userId and backupId are required' });
+    }
+
+    // Build S3 object key
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const key = `user${userId}/${dateStr}/backup_${backupId}.zip.enc`;
+
+    console.log(`📦 File size: ${file.size} bytes`);
+    console.log(`☁️ Uploading to Spaces: ${key}`);
+
+    // Upload buffer directly
+    const uploadParams = {
+      Bucket: process.env.SPACES_BUCKET,
+      Key: key,
+      Body: file.buffer,
+      ACL: 'private',
+      ContentType: file.mimetype || 'application/octet-stream',
+    };
+
     await s3.send(new PutObjectCommand(uploadParams));
-    // For size, you could track bytes written; we'll send 0 for now.
-    res.json({ spacePath: keyName, size: 0 });
+
+    console.log('✅ Upload successful');
+    res.status(201).json({
+      spacePath: key,
+      size: file.size,
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Upload error:', err.message);
+    res.status(500).json({
+      error: 'Upload failed',
+      details: err.message,
+    });
   }
 };

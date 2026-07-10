@@ -7,6 +7,7 @@ const s3 = new S3Client({
     accessKeyId: process.env.SPACES_KEY,
     secretAccessKey: process.env.SPACES_SECRET,
   },
+  forcePathStyle: false,  // Important for Spaces
 });
 
 module.exports = s3;

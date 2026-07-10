@@ -1,9 +1,10 @@
 const express = require('express');
-const { startBackup, getBackups } = require('../controllers/backupController');
-const authMiddleware = require('../middleware/auth');
+const { startBackup, getHistory } = require('../controllers/backupController');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
-router.post('/start', authMiddleware, startBackup);
-router.get('/history', authMiddleware, getBackups);
+
+router.post('/start', auth, startBackup);
+router.get('/history', auth, getHistory);
 
 module.exports = router;

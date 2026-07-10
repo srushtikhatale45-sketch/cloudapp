@@ -1,9 +1,11 @@
 const express = require('express');
 const { getStats, getTrends } = require('../controllers/analyticsController');
-const authMiddleware = require('../middleware/auth');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
-router.get('/stats', authMiddleware, getStats);
-router.get('/trends', authMiddleware, getTrends);
 
+router.get('/stats', auth, getStats);
+router.get('/trends', auth, getTrends);
+// Debug route – no DB
+router.get('/ping', (req, res) => res.json({ message: 'pong' }));
 module.exports = router;
