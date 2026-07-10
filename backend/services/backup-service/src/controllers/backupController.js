@@ -51,11 +51,11 @@ exports.startBackup = async (req, res) => {
     // 6. Notify success (optional)
     const notifyUrl = process.env.NOTIFICATION_SERVICE_URL;
     if (notifyUrl) {
-      await axios.post(`${notifyUrl}/notify`, {
-        userId,
-        subject: 'Backup Successful',
-        message: `Backup #${backupId} completed successfully at ${new Date().toISOString()}`,
-      }).catch(() => console.warn('Notification service unreachable'));
+      await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/notify`, {
+  userId,
+  subject: 'Backup Successful',
+  message: `Backup #${backupId} completed at ${new Date().toISOString()}`,
+}).catch(() => console.warn('Notification service unreachable'));
     }
 
     res.status(201).json({

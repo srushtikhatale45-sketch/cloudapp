@@ -1,20 +1,36 @@
+const { query } = require('../config/database');
 const transporter = require('../config/email');
-const { query } = require('../../shared/database'); // if you have a shared DB util, otherwise use your own
 
 exports.sendNotification = async (req, res) => {
   const { userId, subject, message } = req.body;
-  // Fetch user email from database
-  // For demo, we assume a dummy email
-  const userEmail = 'demo@example.com';
+
+  if (!userId || !subject || !message) {
+    return res.status(400).json({ error: 'userId, subject, and message are required' });
+  }
 
   try {
-    await transporter.sendMail({
+    // Fetch user email from database
+    const userResult = await query('SELECT email FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userEmail = userResult.rows[0].email;
+
+    // Send email
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM || '"Cloud Backup" <noreply@cloudbackup.com>',
       to: userEmail,
       subject,
       text: message,
+      html: message.replace(/\n/g, '<br>'), // simple HTML conversion
     });
-    res.json({ sent: true });
+
+    console.log(`📨 Email sent to ${userEmail}: ${info.messageId}`);
+    res.json({ success: true, messageId: info.messageId });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Notification error:', err.message);
+    res.status(500).json({ error: 'Failed to send notification', details: err.message });
   }
 };

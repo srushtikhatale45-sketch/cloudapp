@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
 COPY . .
-# Create uploads folder for temporary files
-RUN mkdir -p uploads
-EXPOSE 3003
+# Create temp folder for extraction
+RUN mkdir -p temp
+EXPOSE 3004
 CMD ["node", "src/server.js"]
