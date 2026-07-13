@@ -1,6 +1,6 @@
 const express = require('express');
 const { startBackup, getHistory } = require('../controllers/backupController');
-const auth = require('../middleware/auth');
+const auth = require('../../../../shared/middleware/auth');
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { query } = require('../config/database');
 const { validateRegister, validateLogin } = require('../validations/authValidation');
-
+const { query } = require('../../../../shared/database/index');
 // Register a new user
+const { registerSchema, loginSchema } = require('../../../../shared/validators/userValidation');
 exports.register = async (req, res) => {
   // Validate request body
   const { error } = validateRegister(req.body);

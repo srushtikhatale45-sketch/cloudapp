@@ -1,4 +1,4 @@
-const { query } = require('../config/database');
+const { query } = require('../../../../shared/database/index');
 const transporter = require('../config/email');
 
 exports.sendNotification = async (req, res) => {

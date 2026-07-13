@@ -1,4 +1,4 @@
-const { query } = require('../config/database');
+const { query } = require('../../../../shared/database/index');
 const s3 = require('../config/spaces');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const unzipper = require('unzipper');

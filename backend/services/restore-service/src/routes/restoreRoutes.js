@@ -1,6 +1,6 @@
 const express = require('express');
 const { restoreBackup } = require('../controllers/restoreController');
-const auth = require('../middleware/auth');
+const auth = require('../../../../shared/middleware/auth');
 
 const router = express.Router();
 router.get('/ping', (req, res) => res.json({ message: 'pong' }));

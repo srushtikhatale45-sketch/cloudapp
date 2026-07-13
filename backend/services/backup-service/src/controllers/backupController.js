@@ -1,4 +1,4 @@
-const { query } = require('../config/database');
+const { query } = require('../../../../shared/database/index')
 const axios = require('axios');
 
 // ========== Start a new backup ==========

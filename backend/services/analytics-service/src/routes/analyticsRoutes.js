@@ -1,7 +1,6 @@
 const express = require('express');
 const { getStats, getTrends } = require('../controllers/analyticsController');
-const auth = require('../middleware/auth');
-
+const auth = require('../../../../shared/middleware/auth');
 const router = express.Router();
 
 router.get('/stats', auth, getStats);
