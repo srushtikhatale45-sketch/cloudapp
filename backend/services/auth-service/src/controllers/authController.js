@@ -64,7 +64,9 @@ exports.login = async (req, res) => {
 
     // Generate JWT
     const payload = { userId: user.id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log('🔑 Signing token with secret:', process.env.JWT_SECRET);
+    console.log('🔑 [LOGIN] JWT_SECRET used for signing:', process.env.JWT_SECRET);
+const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       token,

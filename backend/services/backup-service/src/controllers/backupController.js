@@ -96,11 +96,9 @@ exports.startBackup = async (req, res) => {
     });
   }
 };
-
-// ========== Get backup history ==========
 exports.getHistory = async (req, res) => {
   const userId = req.userId;
-
+  console.log('📋 getHistory called with userId:', userId, 'Type:', typeof userId);
   try {
     const result = await query(
       `SELECT id, created_at, size, status
@@ -109,7 +107,7 @@ exports.getHistory = async (req, res) => {
        ORDER BY created_at DESC`,
       [userId]
     );
-
+    console.log('✅ Query returned', result.rows.length, 'rows');
     res.json(result.rows);
   } catch (err) {
     console.error('❌ History error:', err);

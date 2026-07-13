@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || ' ',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -14,13 +14,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log the error details before redirect
+    console.error('🔴 API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Do NOT redirect yet – just log
+      // localStorage.removeItem('token');
+      // window.location.href = '/login';
+      // Instead, throw the error so the calling code can handle it
     }
     return Promise.reject(error);
   }
