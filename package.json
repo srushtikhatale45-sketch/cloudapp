@@ -1,0 +1,31 @@
+{
+  "name": "cloud-backup-platform",
+  "version": "1.0.0",
+  "description": "Cloud Disaster Recovery & Backup Platform - Root",
+  "scripts": {
+    "install:all": "npm run install:auth && npm run install:backup && npm run install:upload && npm run install:restore && npm run install:notification && npm run install:analytics && npm run install:scheduler && npm run install:frontend",
+    "install:auth": "cd backend/services/auth-service && npm install",
+    "install:backup": "cd backend/services/backup-service && npm install",
+    "install:upload": "cd backend/services/upload-service && npm install",
+    "install:restore": "cd backend/services/restore-service && npm install",
+    "install:notification": "cd backend/services/notification-service && npm install",
+    "install:analytics": "cd backend/services/analytics-service && npm install",
+    "install:scheduler": "cd backend/services/scheduler-service && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "start:all": "concurrently --names \"AUTH,BACKUP,UPLOAD,RESTORE,NOTIFY,ANALYTICS,SCHEDULER,FRONTEND\" --prefix-colors \"blue,green,magenta,cyan,yellow,red,white,cyan\" \"npm run start:auth\" \"npm run start:backup\" \"npm run start:upload\" \"npm run start:restore\" \"npm run start:notification\" \"npm run start:analytics\" \"npm run start:scheduler\" \"npm run start:frontend\"",
+    "start:auth": "cd backend/services/auth-service && npm run dev",
+    "start:backup": "cd backend/services/backup-service && npm run dev",
+    "start:upload": "cd backend/services/upload-service && npm run dev",
+    "start:restore": "cd backend/services/restore-service && npm run dev",
+    "start:notification": "cd backend/services/notification-service && npm run dev",
+    "start:analytics": "cd backend/services/analytics-service && npm run dev",
+    "start:scheduler": "cd backend/services/scheduler-service && npm run dev",
+    "start:frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "keywords": ["backup", "disaster-recovery", "microservices", "cloud"],
+  "author": "Your Name",
+  "license": "MIT"
+}
