@@ -1,0 +1,105 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: registry.digitalocean.com/cloud-backup-registry/app
+  CLUSTER_NAME: cloud-backup-cluster
+  NAMESPACE: cloud-backup
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DO Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build and push auth-service
+        run: |
+          docker build -t $REGISTRY:auth-${{ github.sha }} -t $REGISTRY:auth backend/services/auth-service
+          docker push $REGISTRY:auth-${{ github.sha }}
+          docker push $REGISTRY:auth
+
+      - name: Build and push upload-service
+        run: |
+          docker build -t $REGISTRY:upload-${{ github.sha }} -t $REGISTRY:upload backend/services/upload-service
+          docker push $REGISTRY:upload-${{ github.sha }}
+          docker push $REGISTRY:upload
+
+      - name: Build and push backup-service
+        run: |
+          docker build -t $REGISTRY:backup-${{ github.sha }} -t $REGISTRY:backup backend/services/backup-service
+          docker push $REGISTRY:backup-${{ github.sha }}
+          docker push $REGISTRY:backup
+
+      - name: Build and push restore-service
+        run: |
+          docker build -t $REGISTRY:restore-${{ github.sha }} -t $REGISTRY:restore backend/services/restore-service
+          docker push $REGISTRY:restore-${{ github.sha }}
+          docker push $REGISTRY:restore
+
+      - name: Build and push notification-service
+        run: |
+          docker build -t $REGISTRY:notification-${{ github.sha }} -t $REGISTRY:notification backend/services/notification-service
+          docker push $REGISTRY:notification-${{ github.sha }}
+          docker push $REGISTRY:notification
+
+      - name: Build and push analytics-service
+        run: |
+          docker build -t $REGISTRY:analytics-${{ github.sha }} -t $REGISTRY:analytics backend/services/analytics-service
+          docker push $REGISTRY:analytics-${{ github.sha }}
+          docker push $REGISTRY:analytics
+
+      - name: Build and push scheduler-service
+        run: |
+          docker build -t $REGISTRY:scheduler-${{ github.sha }} -t $REGISTRY:scheduler backend/services/scheduler-service
+          docker push $REGISTRY:scheduler-${{ github.sha }}
+          docker push $REGISTRY:scheduler
+
+      - name: Build and push frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          docker build \
+            --build-arg VITE_AUTH_URL=$VITE_API_URL \
+            --build-arg VITE_BACKUP_URL=$VITE_API_URL \
+            --build-arg VITE_RESTORE_URL=$VITE_API_URL \
+            --build-arg VITE_ANALYTICS_URL=$VITE_API_URL \
+            -t $REGISTRY:frontend-${{ github.sha }} -t $REGISTRY:frontend frontend
+          docker push $REGISTRY:frontend-${{ github.sha }}
+          docker push $REGISTRY:frontend
+
+      - name: Save DOKS kubeconfig
+        run: doctl kubernetes cluster kubeconfig save $CLUSTER_NAME
+
+      - name: Deploy - update image tags
+        run: |
+          kubectl set image deployment/auth-service auth-service=$REGISTRY:auth-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/upload-service upload-service=$REGISTRY:upload-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/backup-service backup-service=$REGISTRY:backup-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/restore-service restore-service=$REGISTRY:restore-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/notification-service notification-service=$REGISTRY:notification-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/analytics-service analytics-service=$REGISTRY:analytics-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/scheduler-service scheduler-service=$REGISTRY:scheduler-${{ github.sha }} -n $NAMESPACE
+          kubectl set image deployment/frontend frontend=$REGISTRY:frontend-${{ github.sha }} -n $NAMESPACE
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/auth-service -n $NAMESPACE
+          kubectl rollout status deployment/upload-service -n $NAMESPACE
+          kubectl rollout status deployment/backup-service -n $NAMESPACE
+          kubectl rollout status deployment/restore-service -n $NAMESPACE
+          kubectl rollout status deployment/notification-service -n $NAMESPACE
+          kubectl rollout status deployment/analytics-service -n $NAMESPACE
+          kubectl rollout status deployment/scheduler-service -n $NAMESPACE
+          kubectl rollout status deployment/frontend -n $NAMESPACE
