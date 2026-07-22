@@ -2,8 +2,8 @@ const axios = require("axios");
 const FormData = require("form-data");
 const { zipBuffer } = require("../compression/zipper");
 const { encryptBuffer } = require("../encryption/aes256");
-const { createBackupRecord } = require("./metadataService");
-const { UPLOAD_SERVICE_URL } = require("../config/services");
+const { createBackupRecord, getBackupById } = require("./metadataService");
+const { UPLOAD_SERVICE_URL, RESTORE_SERVICE_URL } = require("../config/services");
 
 const runBackup = async (fileBuffer, originalName) => {
   const zipped = await zipBuffer(fileBuffer, originalName);
@@ -30,4 +30,22 @@ const runBackup = async (fileBuffer, originalName) => {
   return record;
 };
 
-module.exports = { runBackup };
+const rerunBackup = async (backupId) => {
+  const original = await getBackupById(backupId);
+
+  const restoreResponse = await axios.post(
+    `${RESTORE_SERVICE_URL}/api/restore`,
+    { storageKey: original.storageKey, bucket: original.bucket },
+    { responseType: "arraybuffer" }
+  );
+
+  const fileBuffer = Buffer.from(restoreResponse.data);
+
+  const record = await runBackup(fileBuffer, original.originalName);
+  record.isRecurring = true;
+  await record.save();
+
+  return record;
+};
+
+module.exports = { runBackup, rerunBackup };

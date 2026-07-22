@@ -6,14 +6,35 @@ const History = () => {
   const [backups, setBackups] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [togglingId, setTogglingId] = useState(null);
 
-  useEffect(() => {
+  const loadBackups = () => {
     backupApi
       .get("/api/backup")
       .then((res) => setBackups(res.data))
       .catch(() => setError("Could not load backup history."))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadBackups();
   }, []);
+
+  const handleToggleRecurring = async (backup) => {
+    setTogglingId(backup.id);
+    try {
+      await backupApi.patch(`/api/backup/${backup.id}/recurring`, {
+        isRecurring: !backup.isRecurring,
+      });
+      setBackups((prev) =>
+        prev.map((b) => (b.id === backup.id ? { ...b, isRecurring: !b.isRecurring } : b))
+      );
+    } catch (err) {
+      setError("Could not update auto-repeat setting.");
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   return (
     <div>
@@ -33,13 +54,31 @@ const History = () => {
               <p className="text-white font-medium">{b.originalName}</p>
               <p className="text-sm text-slate-400">{new Date(b.createdAt).toLocaleString()} &middot; {b.sizeBytes} bytes</p>
               <p className="text-xs text-slate-500 mt-1 break-all">{b.storageKey}</p>
+              {b.isRecurring && (
+                <span className="inline-block mt-2 text-xs bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded">
+                  Auto-repeats daily
+                </span>
+              )}
             </div>
-            <Link
-              to={`/restore?key=${encodeURIComponent(b.storageKey)}&bucket=${b.bucket}`}
-              className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded text-sm whitespace-nowrap"
-            >
-              Restore
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleToggleRecurring(b)}
+                disabled={togglingId === b.id}
+                className={`px-3 py-1.5 rounded text-sm whitespace-nowrap disabled:opacity-50 ${
+                  b.isRecurring
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-slate-700 hover:bg-slate-600 text-white"
+                }`}
+              >
+                {togglingId === b.id ? "..." : b.isRecurring ? "Auto-repeat: On" : "Auto-repeat: Off"}
+              </button>
+              <Link
+                to={`/restore?key=${encodeURIComponent(b.storageKey)}&bucket=${b.bucket}`}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded text-sm whitespace-nowrap"
+              >
+                Restore
+              </Link>
+            </div>
           </div>
         ))}
       </div>

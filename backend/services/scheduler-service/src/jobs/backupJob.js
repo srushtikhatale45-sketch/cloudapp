@@ -2,13 +2,23 @@ const axios = require("axios");
 const { BACKUP_SERVICE_URL } = require("../config/services");
 
 const runScheduledBackup = async () => {
-  // Note: this is a placeholder trigger. In a real system, this would fetch
-  // a list of files/sources to back up (e.g. from a database of user schedules)
-  // and call backup-service for each one. For now, it confirms backup-service
-  // is reachable and logs the check.
-  const response = await axios.get(`${BACKUP_SERVICE_URL}/api/backup`);
-  console.log(`Backup service reachable. Current backup count: ${response.data.length}`);
-  return response.data;
+  const { data: recurringBackups } = await axios.get(`${BACKUP_SERVICE_URL}/api/backup/recurring`);
+
+  console.log(`Found ${recurringBackups.length} recurring backup(s) to process.`);
+
+  const results = [];
+  for (const backup of recurringBackups) {
+    try {
+      const { data } = await axios.post(`${BACKUP_SERVICE_URL}/api/backup/${backup.id}/rerun`);
+      console.log(`Re-ran backup for "${backup.originalName}" -> new id ${data.backup.id}`);
+      results.push({ originalId: backup.id, status: "success", newBackup: data.backup });
+    } catch (err) {
+      console.error(`Failed to re-run backup ${backup.id} (${backup.originalName}):`, err.message);
+      results.push({ originalId: backup.id, status: "failed", error: err.message });
+    }
+  }
+
+  return results;
 };
 
 module.exports = { runScheduledBackup };
